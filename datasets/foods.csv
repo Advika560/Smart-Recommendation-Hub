@@ -1,0 +1,50 @@
+Food,Category,Diet_Type,Calories,Protein,Price
+Paneer Tikka,Indian,Vegetarian,280,18,250
+Paneer Butter Masala,Indian,Vegetarian,350,15,300
+Dal Makhani,Indian,Vegetarian,320,12,220
+Veg Biryani,Indian,Vegetarian,400,10,250
+Rajma Chawal,Indian,Vegetarian,380,14,180
+Chole Bhature,Indian,Vegetarian,500,12,200
+Masala Dosa,South Indian,Vegetarian,320,8,120
+Idli Sambar,South Indian,Vegetarian,220,6,100
+Vegetable Pulao,Indian,Vegetarian,350,8,180
+Palak Paneer,Indian,Vegetarian,310,16,280
+Chicken Biryani,Indian,Non-Vegetarian,650,30,350
+Butter Chicken,Indian,Non-Vegetarian,550,28,400
+Chicken Curry,Indian,Non-Vegetarian,500,26,300
+Fish Curry,Seafood,Non-Vegetarian,420,25,350
+Mutton Rogan Josh,Indian,Non-Vegetarian,700,35,500
+Grilled Chicken,Healthy,Non-Vegetarian,300,40,350
+Egg Curry,Indian,Eggetarian,280,18,220
+Boiled Eggs,Healthy,Eggetarian,150,13,80
+Omelette,Healthy,Eggetarian,220,15,120
+Egg Fried Rice,Asian,Eggetarian,450,20,250
+Tofu Salad,Healthy,Vegan,180,15,220
+Vegan Buddha Bowl,Healthy,Vegan,250,12,280
+Vegan Wrap,Healthy,Vegan,300,10,200
+Quinoa Salad,Healthy,Vegan,220,11,250
+Vegan Smoothie Bowl,Healthy,Vegan,200,8,180
+Jain Paneer Curry,Jain,Jain Food,300,14,250
+Jain Veg Pulao,Jain,Jain Food,350,10,220
+Jain Dal Tadka,Jain,Jain Food,280,12,180
+Gluten Free Pasta,Continental,Gluten Free,320,12,300
+Rice Noodle Bowl,Asian,Gluten Free,280,10,250
+Gluten Free Pancakes,Breakfast,Gluten Free,260,8,220
+Lactose Free Smoothie,Healthy,Lactose Free,180,10,150
+Almond Milk Oats,Breakfast,Lactose Free,220,8,180
+Lactose Free Yogurt Bowl,Healthy,Lactose Free,250,12,220
+Keto Chicken Salad,Keto,Keto,350,30,320
+Keto Egg Bowl,Keto,Keto,300,25,250
+Keto Grilled Fish,Keto,Keto,380,35,400
+High Protein Chicken Bowl,Fitness,High Protein,420,40,350
+Protein Shake,Fitness,High Protein,180,30,150
+Paneer Protein Bowl,Fitness,High Protein,350,28,300
+Low Fat Veg Soup,Healthy,Low Fat,120,6,100
+Low Fat Salad,Healthy,Low Fat,180,8,150
+Low Fat Grilled Veggies,Healthy,Low Fat,200,10,180
+Diabetic Friendly Salad,Healthy,Diabetic Friendly,180,10,200
+Diabetic Friendly Khichdi,Healthy,Diabetic Friendly,250,12,180
+Diabetic Friendly Oats,Healthy,Diabetic Friendly,220,9,150
+Fruit Bowl,Healthy,Vegetarian,160,3,120
+Greek Yogurt Bowl,Healthy,High Protein,250,20,200
+Brown Rice Bowl,Healthy,Low Fat,280,8,180
