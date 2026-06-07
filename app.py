@@ -13,6 +13,7 @@ st.set_page_config(
 foods_df = pd.read_csv(
     "datasets/comprehensive_foods_usda.csv"
 )
+st.sidebar.success(f"Foods Loaded: {len(foods_df):,}")
 # =====================================
 # CUSTOM CSS
 # =====================================
@@ -267,39 +268,99 @@ st.write(f"Profile Completion: {completion}%")
 # BUTTON
 # =====================================
 
-if st.button("🚀 Generate Recommendations"):
+st.header("🍽️ Recommended Foods")
 
-    st.success(f"Hello {name}! Here are your personalized recommendations.")
+filtered_foods = foods_df.copy()
 
+if "High Protein" in food_preferences:
+        filtered_foods = filtered_foods[
+            filtered_foods["protein_g"] > 20
+        ]
+
+if "Low Fat" in food_preferences:
+        filtered_foods = filtered_foods[
+            filtered_foods["fat_g"] < 10
+        ]
+
+if "Low Carb" in food_preferences:
+        filtered_foods = filtered_foods[
+            filtered_foods["carbs_g"] < 20
+        ]
+
+if "Diabetic Friendly" in food_preferences:
+        filtered_foods = filtered_foods[
+            filtered_foods["sugar_g"] < 10
+        ]
+if "Vegetarian" in food_preferences:
+    filtered_foods = filtered_foods[
+        filtered_foods["food_type"].isin([
+            "Vegetables",
+            "Fruits",
+            "Grains",
+            "Dairy"
+        ])
+    ]
+if "Vegan" in food_preferences:
+    filtered_foods = filtered_foods[
+        filtered_foods["food_type"].isin([
+            "Vegetables",
+            "Fruits",
+            "Grains"
+        ])
+    ]
+
+recommended_foods = filtered_foods.sort_values(
+        by="health_score",
+        ascending=False
+    ).head(20)
+
+st.dataframe(
+        recommended_foods[
+            [
+                "food_name",
+                "food_category",
+                "calories",
+                "protein_g",
+                "health_score"
+            ]
+        ]
+    )
+
+st.success(
+        f"Hello {name}! Here are your personalized recommendations."
+    )
+    
+
+    
     # =====================================
     # USER PROFILE
     # =====================================
 
-    st.header("📋 Your Profile")
+st.header("📋 Your Profile")
 
-    st.write("**Name:**", name)
-    st.write("**Age:**", age)
-    st.write("**Budget:** ₹", budget)
+st.write("**Name:**", name)
+st.write("**Age:**", age)
+st.write("**Budget:** ₹", budget)
 
-    st.write("**Food Preferences:**")
-    st.write(food_preferences)
+st.write("**Food Preferences:**")
+st.write(food_preferences)
 
-    st.write("**Allergies:**")
-    st.write(allergies if allergies else "None")
+st.write("**Allergies:**")
+st.write(allergies if allergies else "None")
 
-    st.write("**Medical Conditions:**")
-    st.write(medical_conditions if medical_conditions else "None")
+st.write("**Medical Conditions:**")
+st.write(medical_conditions if medical_conditions else "None")
 
-    st.write("**Favorite Movie Genres:**")
-    st.write(movie_genres)
+st.write("**Favorite Movie Genres:**")
+st.write(movie_genres)
 
     # =====================================
     # FOOD RECOMMENDATIONS
     # =====================================
 
-    st.header("🍕 Food Recommendations")
+st.header("🍕 Food Recommendations")
 
-    if "Vegetarian" in food_preferences:
+if "Vegetarian" in food_preferences:
         st.markdown("""
         <div class='rec-card'>
         🍕 Paneer Tikka<br>
@@ -308,7 +369,7 @@ if st.button("🚀 Generate Recommendations"):
         </div>
         """, unsafe_allow_html=True)
 
-    if "Non-Vegetarian" in food_preferences:
+if "Non-Vegetarian" in food_preferences:
         st.markdown("""
         <div class='rec-card'>
         🍗 Chicken Biryani<br>
@@ -316,21 +377,21 @@ if st.button("🚀 Generate Recommendations"):
         </div>
         """, unsafe_allow_html=True)
 
-    if "Eggetarian" in food_preferences:
+if "Eggetarian" in food_preferences:
         st.markdown("""
         <div class='rec-card'>
         🥚 Egg Curry
         </div>
         """, unsafe_allow_html=True)
 
-    if "Vegan" in food_preferences:
+if "Vegan" in food_preferences:
         st.markdown("""
         <div class='rec-card'>
         🥗 Vegan Buddha Bowl
         </div>
         """, unsafe_allow_html=True)
 
-    if "High Protein" in food_preferences:
+if "High Protein" in food_preferences:
         st.markdown("""
         <div class='rec-card'>
         💪 Grilled Paneer & Quinoa
@@ -341,9 +402,9 @@ if st.button("🚀 Generate Recommendations"):
     # MOVIE RECOMMENDATIONS
     # =====================================
 
-    st.header("🎬 Movie Recommendations")
+st.header("🎬 Movie Recommendations")
 
-    if "Sci-Fi" in movie_genres:
+if "Sci-Fi" in movie_genres:
         st.markdown("""
         <div class='rec-card'>
         🎬 Interstellar<br>
@@ -351,70 +412,70 @@ if st.button("🚀 Generate Recommendations"):
         </div>
         """, unsafe_allow_html=True)
 
-    if "Action" in movie_genres:
+if "Action" in movie_genres:
         st.markdown("""
         <div class='rec-card'>
         🎬 Avengers: Endgame
         </div>
         """, unsafe_allow_html=True)
 
-    if "Comedy" in movie_genres:
+if "Comedy" in movie_genres:
         st.markdown("""
         <div class='rec-card'>
         🎬 3 Idiots
         </div>
         """, unsafe_allow_html=True)
 
-    if "Romance" in movie_genres:
+if "Romance" in movie_genres:
         st.markdown("""
         <div class='rec-card'>
         🎬 The Notebook
         </div>
         """, unsafe_allow_html=True)
 
-    if "Thriller" in movie_genres:
+if "Thriller" in movie_genres:
         st.markdown("""
         <div class='rec-card'>
         🎬 Se7en
         </div>
         """, unsafe_allow_html=True)
 
-    if "Horror" in movie_genres:
+if "Horror" in movie_genres:
         st.markdown("""
         <div class='rec-card'>
         🎬 The Conjuring
         </div>
         """, unsafe_allow_html=True)
 
-    if "Drama" in movie_genres:
+if "Drama" in movie_genres:
         st.markdown("""
         <div class='rec-card'>
         🎬 The Shawshank Redemption
         </div>
         """, unsafe_allow_html=True)
 
-    if "Adventure" in movie_genres:
+if "Adventure" in movie_genres:
         st.markdown("""
         <div class='rec-card'>
         🎬 Indiana Jones
         </div>
         """, unsafe_allow_html=True)
 
-    if "Animation" in movie_genres:
+if "Animation" in movie_genres:
         st.markdown("""
         <div class='rec-card'>
         🎬 Coco
         </div>
         """, unsafe_allow_html=True)
 
-    if "Crime" in movie_genres:
+if "Crime" in movie_genres:
         st.markdown("""
         <div class='rec-card'>
         🎬 The Godfather
         </div>
         """, unsafe_allow_html=True)
 
-    if "Fantasy" in movie_genres:
+if "Fantasy" in movie_genres:
         st.markdown("""
         <div class='rec-card'>
         🎬 Harry Potter
