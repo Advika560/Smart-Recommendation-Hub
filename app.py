@@ -309,11 +309,102 @@ if "Vegan" in food_preferences:
         ])
     ]
 
-recommended_foods = filtered_foods.sort_values(
-        by="health_score",
-        ascending=False
-    ).head(20)
+# Create recommendation score
+filtered_foods["score"] = filtered_foods["health_score"]
 
+if "High Protein" in food_preferences:
+    filtered_foods["score"] += filtered_foods["protein_g"] * 2
+
+if "Low Fat" in food_preferences:
+    filtered_foods["score"] += (100 - filtered_foods["fat_g"])
+
+if "Low Carb" in food_preferences:
+    filtered_foods["score"] += (100 - filtered_foods["carbs_g"])
+filtered_foods = filtered_foods[
+    (filtered_foods["calories"] > 0) &
+    (filtered_foods["calories"] < 1000)
+]
+filtered_foods = filtered_foods[
+    ~filtered_foods["food_name"].str.contains(
+        "protein|powder|supplement|shake|drink|collagen",
+        case=False,
+        na=False
+    )
+]
+allowed_categories = [
+    "Fruits",
+    "Vegetables",
+    "Grains",
+    "Dairy",
+    "Seafood",
+    "Meat & Poultry"
+]
+
+filtered_foods = filtered_foods[
+    filtered_foods["food_type"].isin(allowed_categories)
+]
+# Sort by score
+recommended_foods = filtered_foods.sort_values(
+    by="score",
+    ascending=False
+).head(20)
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.metric("Foods Found", len(recommended_foods))
+
+with col2:
+    st.metric(
+        "Avg Protein",
+        round(recommended_foods["protein_g"].mean(), 1))
+with col3:
+    st.metric(
+        "Best Score",
+        recommended_foods["score"].max()
+    )
+st.subheader("⭐ Top 5 Food Recommendations")
+food_images = {
+    "Vegetables": "🥦",
+    "Fruits": "🍎",
+    "Seafood": "🐟",
+    "Dairy": "🥛",
+    "Meat & Poultry": "🍗",
+    "Beverages": "🥤",
+    "Grains": "🌾",
+    "Snacks & Sweets": "🍪",
+    "Other": "🍽️"
+}
+for i, (_, row) in enumerate(recommended_foods.head(5).iterrows(), start=1):
+    food_type = row["food_type"]
+    emoji = food_images.get(food_type, "🍽️")
+    reason = []
+
+    if "High Protein" in food_preferences:
+        reason.append("High Protein")
+
+    if "Low Fat" in food_preferences:
+        reason.append("Low Fat")
+
+    if "Low Carb" in food_preferences:
+        reason.append("Low Carb")
+
+    if "Diabetic Friendly" in food_preferences:
+        reason.append("Diabetic Friendly")
+
+    reason_text = ", ".join(reason) if reason else "General Healthy Choice"
+
+    st.info(
+        f"""
+{emoji} Rank #{i} - {row['food_name']}
+
+📂 {row['food_category']}
+
+🔥 {row['calories']} cal | 💪 {row['protein_g']} g protein
+
+❤️ Score: {row['health_score']}
+⭐ Reason: {reason_text}
+"""
+    )
 st.dataframe(
         recommended_foods[
             [
