@@ -310,16 +310,17 @@ if "Vegan" in food_preferences:
     ]
 
 # Create recommendation score
-filtered_foods["score"] = filtered_foods["health_score"]
+filtered_foods["score"] = 0
 
 if "High Protein" in food_preferences:
-    filtered_foods["score"] += filtered_foods["protein_g"] * 2
+    filtered_foods["score"] += filtered_foods["protein_g"] * 0.3
 
 if "Low Fat" in food_preferences:
-    filtered_foods["score"] += (100 - filtered_foods["fat_g"])
+    filtered_foods["score"] += (100 - filtered_foods["fat_g"]) * 0.2
 
 if "Low Carb" in food_preferences:
-    filtered_foods["score"] += (100 - filtered_foods["carbs_g"])
+    filtered_foods["score"] += (100 - filtered_foods["carbs_g"]) * 0.2
+filtered_foods["score"] += filtered_foods["health_score"] * 0.5
 filtered_foods = filtered_foods[
     (filtered_foods["calories"] > 0) &
     (filtered_foods["calories"] < 1000)
@@ -348,7 +349,7 @@ recommended_foods = filtered_foods.sort_values(
     by="score",
     ascending=False
 ).head(20)
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     st.metric("Foods Found", len(recommended_foods))
@@ -361,6 +362,54 @@ with col3:
     st.metric(
         "Best Score",
         recommended_foods["score"].max()
+    )
+with col4:
+    st.metric(
+        "Avg Calories",
+        round(recommended_foods["calories"].mean(), 1)
+    )
+st.subheader("📊 Food Categories Distribution")
+st.caption("Distribution of recommended foods by category")
+category_counts = recommended_foods["food_type"].value_counts()
+
+st.bar_chart(category_counts, height=400)
+import plotly.express as px
+
+st.subheader("🥧 Category Percentage")
+
+fig = px.pie(
+    values=category_counts.values,
+    names=category_counts.index,
+    hole=0.4
+)
+
+st.plotly_chart(fig, use_container_width=True)
+st.subheader("📊 Nutrition Insights")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    highest_protein = recommended_foods.loc[
+        recommended_foods["protein_g"].idxmax()
+    ]
+    st.success(
+        f"💪 Highest Protein\n\n{highest_protein['food_name'][:30]}"
+    )
+
+with col2:
+    lowest_calorie = recommended_foods.loc[
+        recommended_foods["calories"].idxmin()
+    ]
+    st.info(
+        f"🔥 Lowest Calories\n\n{lowest_calorie['food_name'][:30]}"
+    )
+
+with col3:
+    healthiest = recommended_foods.loc[
+        recommended_foods["health_score"].idxmax()
+    ]
+    st.warning(
+        f"❤️ Healthiest Choice\n\n{healthiest['food_name'][:30]}"
     )
 st.subheader("⭐ Top 5 Food Recommendations")
 food_images = {
@@ -375,36 +424,68 @@ food_images = {
     "Other": "🍽️"
 }
 for i, (_, row) in enumerate(recommended_foods.head(5).iterrows(), start=1):
+    
     food_type = row["food_type"]
     emoji = food_images.get(food_type, "🍽️")
+
     reason = []
 
-    if "High Protein" in food_preferences:
+    if row["protein_g"] > 20:
         reason.append("High Protein")
 
-    if "Low Fat" in food_preferences:
+    if row["fat_g"] < 5:
         reason.append("Low Fat")
 
-    if "Low Carb" in food_preferences:
+    if row["carbs_g"] < 15:
         reason.append("Low Carb")
 
-    if "Diabetic Friendly" in food_preferences:
-        reason.append("Diabetic Friendly")
+    if row["health_score"] >= 70:
+        reason.append("Healthy Choice")
 
     reason_text = ", ".join(reason) if reason else "General Healthy Choice"
+    if i == 1:
+        badge = "🥇"
+    elif i == 2:
+        badge = "🥈"
+    elif i == 3:
+         badge = "🥉"
+    else:
+        badge = "🏅"
+    
+    if i == 1:
+        st.success(
+            f"""
+{badge} {emoji} Rank #{i} - {row['food_name']}
 
-    st.info(
-        f"""
-{emoji} Rank #{i} - {row['food_name']}
-
-📂 {row['food_category']}
+📁 {row['food_category']}
 
 🔥 {row['calories']} cal | 💪 {row['protein_g']} g protein
 
 ❤️ Score: {row['health_score']}
+
+Recommendation Strength:
+
+⭐ Reason: {reason_text}
+"""
+        )
+    else:
+        st.info(
+            f"""
+{badge} {emoji} Rank #{i} - {row['food_name']}
+
+📁 {row['food_category']}
+
+🔥 {row['calories']} cal | 💪 {row['protein_g']} g protein
+
+❤️ Score: {row['health_score']}
+
+Recommendation Strength:
+
 ⭐ Reason: {reason_text}
 """
     )
+
+st.progress(min(row["score"] / recommended_foods["score"].max(), 1.0))
 st.dataframe(
         recommended_foods[
             [
