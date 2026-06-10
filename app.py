@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 # =====================================
 # PAGE CONFIG
 # =====================================
@@ -377,6 +378,25 @@ import plotly.express as px
 
 st.subheader("🥧 Category Percentage")
 
+st.subheader("💪 Top 5 Protein Comparison")
+
+protein_fig = px.bar(
+    recommended_foods.head(5),
+    x="food_name",
+    y="protein_g",
+    title="Protein Content of Top Recommendations"
+)
+st.plotly_chart(protein_fig, use_container_width=True)
+st.subheader("🔥 Top 5 Calories Comparison")
+
+calories_fig = px.bar(
+    recommended_foods.head(5),
+    x="food_name",
+    y="calories",
+    title="Calories of Top Recommendations"
+)
+
+st.plotly_chart(calories_fig, use_container_width=True)
 fig = px.pie(
     values=category_counts.values,
     names=category_counts.index,
@@ -385,6 +405,25 @@ fig = px.pie(
 
 st.plotly_chart(fig, use_container_width=True)
 st.subheader("📊 Nutrition Insights")
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.metric(
+        "🔥 Avg Calories",
+        round(recommended_foods["calories"].mean(), 1)
+    )
+
+with col2:
+    st.metric(
+        "💪 Avg Protein",
+        round(recommended_foods["protein_g"].mean(), 1)
+    )
+
+with col3:
+    st.metric(
+        "❤️ Avg Health Score",
+        round(recommended_foods["health_score"].mean(), 1)
+    )
 
 col1, col2, col3 = st.columns(3)
 
@@ -412,6 +451,16 @@ with col3:
         f"❤️ Healthiest Choice\n\n{healthiest['food_name'][:30]}"
     )
 st.subheader("⭐ Top 5 Food Recommendations")
+st.subheader("🎯 Recommendation Confidence")
+
+confidence = round(
+    recommended_foods["health_score"].mean(),
+    1
+)
+
+st.progress(int(confidence))
+
+st.write(f"Confidence Score: {confidence}%")
 food_images = {
     "Vegetables": "🥦",
     "Fruits": "🍎",
@@ -497,7 +546,14 @@ st.dataframe(
             ]
         ]
     )
+csv = recommended_foods.to_csv(index=False)
 
+st.download_button(
+    label="📥 Download Recommendations CSV",
+    data=csv,
+    file_name="food_recommendations.csv",
+    mime="text/csv"
+)
 st.success(
         f"Hello {name}! Here are your personalized recommendations."
     )
