@@ -270,7 +270,8 @@ st.write(f"Profile Completion: {completion}%")
 # =====================================
 
 st.header("🍽️ Recommended Foods")
-
+st.markdown("---")
+st.subheader("🎯 Personalized Recommendations")
 filtered_foods = foods_df.copy()
 
 if "High Protein" in food_preferences:
@@ -384,7 +385,18 @@ protein_fig = px.bar(
     recommended_foods.head(5),
     x="food_name",
     y="protein_g",
-    title="Protein Content of Top Recommendations"
+    title="💪 Top 5 Protein Rich Foods",
+    text="protein_g"
+)
+
+protein_fig.update_layout(
+    xaxis_title="Food",
+    yaxis_title="Protein (g)",
+    height=500
+)
+
+protein_fig.update_traces(
+    textposition="outside"
 )
 st.plotly_chart(protein_fig, use_container_width=True)
 st.subheader("🔥 Top 5 Calories Comparison")
@@ -393,7 +405,18 @@ calories_fig = px.bar(
     recommended_foods.head(5),
     x="food_name",
     y="calories",
-    title="Calories of Top Recommendations"
+    title="🔥 Top 5 Calories Comparison",
+    text="calories"
+)
+
+calories_fig.update_layout(
+    xaxis_title="Food",
+    yaxis_title="Calories",
+    height=500
+)
+
+calories_fig.update_traces(
+    textposition="outside"
 )
 
 st.plotly_chart(calories_fig, use_container_width=True)
@@ -402,7 +425,10 @@ fig = px.pie(
     names=category_counts.index,
     hole=0.4
 )
-
+fig.update_traces(
+    textposition="inside",
+    textinfo="percent+label"
+)
 st.plotly_chart(fig, use_container_width=True)
 st.subheader("📊 Nutrition Insights")
 col1, col2, col3 = st.columns(3)
@@ -450,6 +476,39 @@ with col3:
     st.warning(
         f"❤️ Healthiest Choice\n\n{healthiest['food_name'][:30]}"
     )
+st.subheader(
+    f"📋 Recommendation Summary for {name if name else 'Guest User'}"
+)
+
+st.info(
+    f"""
+🎯 Total Recommendations Found: {len(recommended_foods)}
+
+🥇 Best Match: {recommended_foods.iloc[0]['food_name']}
+
+
+📂 Category: {recommended_foods.iloc[0]['food_category']}
+
+❤️ Health Score: {recommended_foods.iloc[0]['health_score']}
+"""
+)
+top_food = recommended_foods.iloc[0]
+
+st.success(
+    f"""
+🌟 TODAY'S BEST RECOMMENDATION
+
+🥇 {top_food['food_name']}
+
+📁 Category: {top_food['food_category']}
+
+❤️ Health Score: {top_food['health_score']}
+"""
+)
+search_food = st.text_input(
+    "🔍 Search Recommended Foods",
+    placeholder="Type food name..."
+)
 st.subheader("⭐ Top 5 Food Recommendations")
 st.subheader("🎯 Recommendation Confidence")
 
@@ -472,7 +531,18 @@ food_images = {
     "Snacks & Sweets": "🍪",
     "Other": "🍽️"
 }
-for i, (_, row) in enumerate(recommended_foods.head(5).iterrows(), start=1):
+display_foods = recommended_foods
+
+if search_food:
+    display_foods = display_foods[
+        display_foods["food_name"]
+        .str.contains(search_food, case=False, na=False)
+    ]
+
+for i, (_, row) in enumerate(
+    display_foods.head(5).iterrows(),
+    start=1
+):
     
     food_type = row["food_type"]
     emoji = food_images.get(food_type, "🍽️")
@@ -490,8 +560,17 @@ for i, (_, row) in enumerate(recommended_foods.head(5).iterrows(), start=1):
 
     if row["health_score"] >= 70:
         reason.append("Healthy Choice")
-
+    if not reason:
+        reason = ["Balanced Diet"]
     reason_text = ", ".join(reason) if reason else "General Healthy Choice"
+    if row["health_score"] >= 80:
+        quality = "Excellent Choice"
+    elif row["health_score"] >= 70:
+        quality = "Very Good Choice"
+    elif row["health_score"] >= 60:
+        quality = "Good Choice"
+    else:
+        quality = "Average Choice"
     if i == 1:
         badge = "🥇"
     elif i == 2:
@@ -512,9 +591,9 @@ for i, (_, row) in enumerate(recommended_foods.head(5).iterrows(), start=1):
 
 ❤️ Score: {row['health_score']}
 
-Recommendation Strength:
+🏆 Quality: {quality}
 
-⭐ Reason: {reason_text}
+🏷️ Tags: {reason_text}
 """
         )
     else:
@@ -527,14 +606,57 @@ Recommendation Strength:
 🔥 {row['calories']} cal | 💪 {row['protein_g']} g protein
 
 ❤️ Score: {row['health_score']}
-
-Recommendation Strength:
+🏆 Quality: {quality}
 
 ⭐ Reason: {reason_text}
 """
     )
 
 st.progress(min(row["score"] / recommended_foods["score"].max(), 1.0))
+with st.expander(f"📋 View Details - {row['food_name'][:25]}"):
+         st.write(f"🔥 Calories: {row['calories']}")
+         st.write(f"💪 Protein: {row['protein_g']} g")
+         st.write(f"🥑 Fat: {row['fat_g']} g")
+         st.write(f"🍞 Carbs: {row['carbs_g']} g")
+         st.write(f"❤️ Health Score: {row['health_score']}")
+         st.write(f"📂 Category: {row['food_category']}")
+st.subheader("🏆 Top Performers")
+col1, col2, col3 = st.columns(3)
+
+highest_protein = recommended_foods.loc[recommended_foods["protein_g"].idxmax()]
+lowest_calorie = recommended_foods.loc[recommended_foods["calories"].idxmin()]
+healthiest = recommended_foods.loc[recommended_foods["health_score"].idxmax()]
+with col1:
+    st.success(
+        f"""
+🥇 Highest Protein
+
+{highest_protein['food_name'][:30]}
+
+💪 {highest_protein['protein_g']} g protein
+"""
+    )
+with col2:
+    st.info(
+        f"""
+🔥 Lowest Calories
+
+{lowest_calorie['food_name'][:30]}
+
+🔥 {lowest_calorie['calories']} calories
+"""
+    )
+with col3:
+    st.warning(
+        f"""
+❤️ Healthiest Choice
+
+{healthiest['food_name'][:30]}
+
+❤️ Score: {healthiest['health_score']}
+"""
+    )
+st.subheader("📊 Food Comparison Table")
 st.dataframe(
         recommended_foods[
             [
@@ -546,6 +668,9 @@ st.dataframe(
             ]
         ]
     )
+st.caption(
+    "Compare calories, protein, carbs and health scores across recommendations."
+)
 csv = recommended_foods.to_csv(index=False)
 
 st.download_button(
