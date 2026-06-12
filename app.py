@@ -20,7 +20,37 @@ st.sidebar.success(f"Foods Loaded: {len(foods_df):,}")
 # =====================================
 
 st.markdown("""
+            
 <style>
+            .main .block-container {
+    max-width: 1400px;
+    padding-top: 2rem;
+    padding-left: 3rem;
+    padding-right: 3rem;
+}
+            .metric-card{
+    background: linear-gradient(135deg,#1f2937,#111827);
+    padding:20px;
+    border-radius:15px;
+    text-align:center;
+    border:1px solid #374151;
+    box-shadow:0px 4px 15px rgba(0,0,0,0.4);
+}
+
+.metric-title{
+    color:#9ca3af;
+    font-size:15px;
+}
+
+.metric-value{
+    color:white;
+    font-size:32px;
+    font-weight:bold;
+}
+
+.stApp {
+    background-color: #0E1117;
+}
 
 .stApp {
     background-color: #0E1117;
@@ -49,10 +79,15 @@ st.markdown("""
 /* Recommendation Cards */
 .rec-card {
     background: linear-gradient(135deg,#232526,#414345);
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 10px;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
     border-left: 5px solid orange;
+    min-height: 320px;
+}
+.rec-card:hover {
+    transform: translateY(-5px);
+    transition: 0.3s;
 }
 
 /* Section Headers */
@@ -351,11 +386,14 @@ recommended_foods = filtered_foods.sort_values(
     by="score",
     ascending=False
 ).head(20)
+st.subheader("📊 Recommendation Dashboard")
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    st.metric("Foods Found", len(recommended_foods))
-
+    st.metric(
+        "Foods Found",
+        len(recommended_foods)
+    )
 with col2:
     st.metric(
         "Avg Protein",
@@ -370,66 +408,7 @@ with col4:
         "Avg Calories",
         round(recommended_foods["calories"].mean(), 1)
     )
-st.subheader("📊 Food Categories Distribution")
-st.caption("Distribution of recommended foods by category")
-category_counts = recommended_foods["food_type"].value_counts()
-
-st.bar_chart(category_counts, height=400)
-import plotly.express as px
-
-st.subheader("🥧 Category Percentage")
-
-st.subheader("💪 Top 5 Protein Comparison")
-
-protein_fig = px.bar(
-    recommended_foods.head(5),
-    x="food_name",
-    y="protein_g",
-    title="💪 Top 5 Protein Rich Foods",
-    text="protein_g"
-)
-
-protein_fig.update_layout(
-    xaxis_title="Food",
-    yaxis_title="Protein (g)",
-    height=500
-)
-
-protein_fig.update_traces(
-    textposition="outside"
-)
-st.plotly_chart(protein_fig, use_container_width=True)
-st.subheader("🔥 Top 5 Calories Comparison")
-
-calories_fig = px.bar(
-    recommended_foods.head(5),
-    x="food_name",
-    y="calories",
-    title="🔥 Top 5 Calories Comparison",
-    text="calories"
-)
-
-calories_fig.update_layout(
-    xaxis_title="Food",
-    yaxis_title="Calories",
-    height=500
-)
-
-calories_fig.update_traces(
-    textposition="outside"
-)
-
-st.plotly_chart(calories_fig, use_container_width=True)
-fig = px.pie(
-    values=category_counts.values,
-    names=category_counts.index,
-    hole=0.4
-)
-fig.update_traces(
-    textposition="inside",
-    textinfo="percent+label"
-)
-st.plotly_chart(fig, use_container_width=True)
+st.divider()
 st.subheader("📊 Nutrition Insights")
 col1, col2, col3 = st.columns(3)
 
@@ -538,7 +517,7 @@ if search_food:
         display_foods["food_name"]
         .str.contains(search_food, case=False, na=False)
     ]
-
+col1, col2 = st.columns(2)
 for i, (_, row) in enumerate(
     display_foods.head(5).iterrows(),
     start=1
@@ -579,39 +558,53 @@ for i, (_, row) in enumerate(
          badge = "🥉"
     else:
         badge = "🏅"
-    
     if i == 1:
-        st.success(
-            f"""
-{badge} {emoji} Rank #{i} - {row['food_name']}
-
-📁 {row['food_category']}
-
-🔥 {row['calories']} cal | 💪 {row['protein_g']} g protein
-
-❤️ Score: {row['health_score']}
-
-🏆 Quality: {quality}
-
-🏷️ Tags: {reason_text}
-"""
-        )
+        card_type = "success"
+    elif i <= 3:
+        card_type = "info"
     else:
-        st.info(
-            f"""
-{badge} {emoji} Rank #{i} - {row['food_name']}
+        card_type = "warning"
+    
+    card_text = f"""
+    ### {badge} Rank #{i}
 
-📁 {row['food_category']}
+    **{row['food_name']}**
 
-🔥 {row['calories']} cal | 💪 {row['protein_g']} g protein
+    📂 Category: {row['food_category']}
 
-❤️ Score: {row['health_score']}
-🏆 Quality: {quality}
+    🔥 Calories: {row['calories']:.1f}
 
-⭐ Reason: {reason_text}
-"""
-    )
+    💪 Protein: {row['protein_g']:.1f} g
 
+    ❤️ Health Score: {row['health_score']}
+
+    🏆 Quality: {quality}
+
+    ⭐ {reason_text}
+    """
+    st.markdown("---")
+    target_col = col1 if i % 2 != 0 else col2
+    with target_col:
+        st.markdown(f"""
+        <div class="rec-card">
+        <h3>{badge} Rank #{i}</h3>
+
+        <p><b>{row['food_name']}</b></p>
+
+        <p>📁 {row['food_category']}</p>
+
+        <p>🔥 Calories: {row['calories']}</p>
+
+        <p>💪 Protein: {row['protein_g']} g</p>
+
+        <p>❤️ Health Score: {row['health_score']}</p>
+
+        <p>🏆 {quality}</p>
+
+        <p>⭐ {reason_text}</p>
+
+        </div>
+""", unsafe_allow_html=True)
 st.progress(min(row["score"] / recommended_foods["score"].max(), 1.0))
 with st.expander(f"📋 View Details - {row['food_name'][:25]}"):
          st.write(f"🔥 Calories: {row['calories']}")
@@ -620,42 +613,37 @@ with st.expander(f"📋 View Details - {row['food_name'][:25]}"):
          st.write(f"🍞 Carbs: {row['carbs_g']} g")
          st.write(f"❤️ Health Score: {row['health_score']}")
          st.write(f"📂 Category: {row['food_category']}")
+
 st.subheader("🏆 Top Performers")
-col1, col2, col3 = st.columns(3)
+col1, col2, col3 = st.columns([1,1,1])
 
 highest_protein = recommended_foods.loc[recommended_foods["protein_g"].idxmax()]
 lowest_calorie = recommended_foods.loc[recommended_foods["calories"].idxmin()]
 healthiest = recommended_foods.loc[recommended_foods["health_score"].idxmax()]
 with col1:
-    st.success(
-        f"""
-🥇 Highest Protein
-
-{highest_protein['food_name'][:30]}
-
-💪 {highest_protein['protein_g']} g protein
-"""
-    )
+    st.markdown(f"""
+    <div class="metric-card">
+    <h4>💪 Highest Protein</h4>
+    <p><b>{highest_protein['food_name']}</b></p>
+    <p>{highest_protein['protein_g']:.1f} g protein</p>
+    </div>
+    """, unsafe_allow_html=True)
 with col2:
-    st.info(
-        f"""
-🔥 Lowest Calories
-
-{lowest_calorie['food_name'][:30]}
-
-🔥 {lowest_calorie['calories']} calories
-"""
-    )
+    st.markdown(f"""
+    <div class="metric-card">
+    <h4>🔥 Lowest Calories</h4>
+    <p><b>{lowest_calorie['food_name'][:30]}</b></p>
+    <p>{lowest_calorie['calories']} calories</p>
+    </div>
+    """, unsafe_allow_html=True)
 with col3:
-    st.warning(
-        f"""
-❤️ Healthiest Choice
-
-{healthiest['food_name'][:30]}
-
-❤️ Score: {healthiest['health_score']}
-"""
-    )
+    st.markdown(f"""
+    <div class="metric-card">
+    <h4>❤️ Healthiest Choice</h4>
+    <p><b>{healthiest['food_name'][:30]}</b></p>
+    <p>Score: {healthiest['health_score']}</p>
+    </div>
+    """, unsafe_allow_html=True)
 st.subheader("📊 Food Comparison Table")
 st.dataframe(
         recommended_foods[
@@ -682,7 +670,66 @@ st.download_button(
 st.success(
         f"Hello {name}! Here are your personalized recommendations."
     )
-    
+st.subheader("📊 Food Categories Distribution")
+st.caption("Distribution of recommended foods by category")
+category_counts = recommended_foods["food_type"].value_counts()
+
+st.bar_chart(category_counts, height=400)
+import plotly.express as px
+
+st.subheader("🥧 Category Percentage")
+
+st.subheader("💪 Top 5 Protein Comparison")
+
+protein_fig = px.bar(
+    recommended_foods.head(5),
+    x="food_name",
+    y="protein_g",
+    title="💪 Top 5 Protein Rich Foods",
+    text="protein_g"
+)
+
+protein_fig.update_layout(
+    xaxis_title="Food",
+    yaxis_title="Protein (g)",
+    height=500
+)
+
+protein_fig.update_traces(
+    textposition="outside"
+)
+st.plotly_chart(protein_fig, use_container_width=True)
+st.subheader("🔥 Top 5 Calories Comparison")
+
+calories_fig = px.bar(
+    recommended_foods.head(5),
+    x="food_name",
+    y="calories",
+    title="🔥 Top 5 Calories Comparison",
+    text="calories"
+)
+
+calories_fig.update_layout(
+    xaxis_title="Food",
+    yaxis_title="Calories",
+    height=500
+)
+
+calories_fig.update_traces(
+    textposition="outside"
+)
+
+st.plotly_chart(calories_fig, use_container_width=True)
+fig = px.pie(
+    values=category_counts.values,
+    names=category_counts.index,
+    hole=0.4
+)
+fig.update_traces(
+    textposition="inside",
+    textinfo="percent+label"
+)
+st.plotly_chart(fig, use_container_width=True)   
 
     
     # =====================================
