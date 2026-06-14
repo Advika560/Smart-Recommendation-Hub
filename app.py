@@ -22,7 +22,21 @@ st.set_page_config(
 foods_df = pd.read_csv(
     "datasets/comprehensive_foods_usda.csv"
 )
-st.sidebar.success(f"Foods Loaded: {len(foods_df):,}")
+if "favorites" not in st.session_state:
+    st.session_state.favorites = []
+st.sidebar.markdown(f"""
+<div style="
+background:#F6F1F1;
+padding:15px;
+border-radius:12px;
+border-left:5px solid #CDB7C5;
+color:#6F5A64;
+font-weight:600;
+font-size:18px;
+">
+📊 Foods Loaded: {len(foods_df):,}
+</div>
+""", unsafe_allow_html=True)
 # =====================================
 # CUSTOM CSS
 # =====================================
@@ -85,6 +99,16 @@ section[data-testid="stSidebar"] .stButton > button:hover {
     text-align:center;
     border:2px solid #DCC6CC;
     box-shadow:0 8px 20px rgba(0,0,0,0.08);
+}
+.metric-card h4 {
+    color: #6F5A64 !important;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.metric-card p {
+    color: #4A4A4A !important;
+    font-size: 18px;
 }
 .metric-title{
     color:#7D6B73;
@@ -190,15 +214,30 @@ section[data-testid="stSidebar"] .stButton > button:hover {
 }
 button[data-testid="stNumberInputStepUp"],
 button[data-testid="stNumberInputStepDown"] {
-    background-color: #DDD6F3 !important;
+    background-color: #F6F1F1 !important;
     color: #2E2E2E !important;
-    border: 1px solid #CDB7C5 !important;
+    border: 1px solid #D8CACA !important;
 }
 
 button[data-testid="stNumberInputStepUp"]:hover,
 button[data-testid="stNumberInputStepDown"]:hover {
-    background-color: #E8D5D5 !important;
-    color: black !important;
+    background-color: #F6F1F1 !important;
+    color: #2E2E2E !important;
+}
+            /* Food Preference Dropdown */
+
+div[data-baseweb="select"] > div {
+    background-color: #F6F1F1 !important;
+    border: 1px solid #D8CACA !important;
+    color: #2E2E2E !important;
+}
+
+div[data-baseweb="select"] span {
+    color: #6F5A64 !important;
+}
+
+div[data-baseweb="select"] svg {
+    fill: #6F5A64 !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -239,19 +278,31 @@ st.markdown(
 with st.sidebar:
     st.title("🚀 Navigation")
 
-    st.info("""
-    Smart Recommendation Hub
+    st.markdown("""
+<div style="
+background:#F6F1F1;
+padding:20px;
+border-radius:15px;
+border-left:5px solid #CDB7C5;
+color:#4A4A4A;
+box-shadow:0 4px 12px rgba(0,0,0,0.08);
+">
 
-    Build your profile and get:
+<h4 style="color:#6F5A64;margin-top:0;">
+✨ Smart Recommendation Hub
+</h4>
 
-    🍕 Food Suggestions
+<p style="color:#4A4A4A;">
+Build your profile and get:
+</p>
 
-    🎬 Movie Suggestions
+<p>🍕 Food Suggestions</p>
+<p>🎬 Movie Suggestions</p>
+<p>🛒 Product Suggestions</p>
+<p>✈️ Travel Suggestions</p>
 
-    🛒 Product Suggestions
-
-    ✈️ Travel Suggestions
-    """)
+</div>
+""", unsafe_allow_html=True)
 
 # =====================================
 # PERSONAL INFORMATION
@@ -313,7 +364,24 @@ food_preferences = st.multiselect(
         "Diabetic Friendly"
     ]
 )
-
+protein_range = st.slider(
+    "Protein Range (g)",
+    0,
+    50,
+    (5, 25)
+)
+calorie_range = st.slider(
+    "Calories Range",
+    0,
+    1000,
+    (100, 500)
+)
+health_score_filter = st.slider(
+    "Minimum Health Score",
+    0,
+    100,
+    60
+)
 allergies = st.text_area(
     "Food Allergies (Optional)",
     placeholder="Example: Peanuts, Milk, Soy, Shellfish"
@@ -495,6 +563,65 @@ recommended_foods = filtered_foods.sort_values(
     by="score",
     ascending=False
 ).head(20)
+recommended_foods = recommended_foods[
+    (recommended_foods["protein_g"] >= protein_range[0]) &
+    (recommended_foods["protein_g"] <= protein_range[1]) &
+    (recommended_foods["calories"] >= calorie_range[0]) &
+    (recommended_foods["calories"] <= calorie_range[1]) &
+    (recommended_foods["health_score"] >= health_score_filter)
+]
+if not recommended_foods.empty:
+    top_food = recommended_foods.iloc[0]
+score = top_food['health_score']
+
+if score >= 80:
+    badge = "🟢 Excellent Choice"
+elif score >= 60:
+    badge = "🟡 Good Choice"
+else:
+    badge = "🔴 Moderate Choice"
+    st.markdown(f"""
+<div style="
+background:#F6F1F1;
+padding:25px;
+border-radius:15px;
+border-left:6px solid #CDB7C5;
+box-shadow:0 4px 10px rgba(0,0,0,0.08);
+margin-bottom:20px;
+">
+
+<h3 style="color:#6F5A64;margin-top:0;">
+💡 Why this recommendation?
+</h3>
+
+<p style="font-size:22px;font-weight:600;color:#4A4A4A;">
+{top_food['food_name']}
+</p>
+
+<p style="color:#6F5A64;font-size:17px;">
+• Protein: {top_food['protein_g']} g <br>
+• Calories: {top_food['calories']} <br>
+• Health Score: {top_food['health_score']}
+</p>
+<br><br>
+
+<span style="
+background:#D8E2D0;
+padding:8px 15px;
+border-radius:20px;
+font-weight:600;
+color:#4A4A4A;
+">
+{badge}
+</span>
+
+<br><br>
+<p style="color:#4A4A4A;">
+This food best matches your selected filters and preferences.
+</p>
+
+</div>
+""", unsafe_allow_html=True)
 st.subheader("📊 Recommendation Dashboard")
 col1, col2, col3, col4 = st.columns(4)
 
@@ -723,41 +850,78 @@ for i, (_, row) in enumerate(
 
     **{row['food_name']}**
 
-    📂 Category: {row['food_category']}
+    <p style="color:#4A4A4A !important;">📁 {row['food_category']}</p>
 
-    🔥 Calories: {row['calories']:.1f}
+    <p style="color:#4A4A4A !important;">🔥 Calories: {row['calories']}</p>
 
-    💪 Protein: {row['protein_g']:.1f} g
+    <p style="color:#4A4A4A !important;">💪 Protein: {row['protein_g']} g</p>
 
-    ❤️ Health Score: {row['health_score']}
+    <p style="color:#4A4A4A !important;">❤️ Health Score: {row['health_score']}</p>
 
-    🏆 Quality: {quality}
+    <p style="color:#6F5A64 !important;font-weight:600;">🏆 {quality}</p>
 
-    ⭐ {reason_text}
+    <p style="color:#A67C87 !important;font-weight:600;">⭐ {reason_text}</p>
     """
     st.markdown("---")
     target_col = col1 if i % 2 != 0 else col2
     with target_col:
-        st.markdown(f"""
-        <div class="rec-card">
-        <h3>{badge} Rank #{i}</h3>
+      st.markdown(f"""
+    <div style="
+    background:#F6F1F1;
+    padding:20px;
+    border-radius:18px;
+    border-left:6px solid #CDB7C5;
+    box-shadow:0 4px 12px rgba(0,0,0,0.08);
+    margin-bottom:15px;
+    ">
+    
+    <h3 style="
+    color:#6F5A64;
+    margin-bottom:15px;
+    ">
+    {badge} Rank #{i}
+    </h3>
 
-        <p><b>{row['food_name']}</b></p>
+    <p style="font-size:20px;font-weight:700;color:#4A4A4A;">
+    {row['food_name']}
+    </p>
 
-        <p>📁 {row['food_category']}</p>
+    <<p style="color:#4A4A4A;font-size:18px;">
+    📁 {row['food_category']}
+    </p>
 
-        <p>🔥 Calories: {row['calories']}</p>
+    <p style="color:#4A4A4A;font-size:18px;">
+    🔥 Calories: {row['calories']}
+    </p>
 
-        <p>💪 Protein: {row['protein_g']} g</p>
+    <p style="color:#4A4A4A;font-size:18px;">
+    💪 Protein: {row['protein_g']} g
+    </p>
 
-        <p>❤️ Health Score: {row['health_score']}</p>
+    <p style="color:#4A4A4A;font-size:18px;">
+    ❤️ Health Score: {row['health_score']}
+    </p>
 
-        <p>🏆 {quality}</p>
+    <p style="color:#6F5A64;font-weight:600;">
+    🏆 {quality}
+    </p>
 
-        <p>⭐ {reason_text}</p>
+    <p style="color:#A67C87;font-weight:600;">
+    ⭐ {reason_text}
+    </p>
 
-        </div>
-""", unsafe_allow_html=True)
+    </div>
+    """, 
+        unsafe_allow_html=True
+    )
+if st.button(
+    f"⭐ Save {row['food_name'][:20]}",
+    key=f"save_{i}"
+):
+    if row['food_name'] not in st.session_state.favorites:
+        st.session_state.favorites.append(
+            row['food_name']
+        )
 st.progress(min(row["score"] / recommended_foods["score"].max(), 1.0))
 with st.expander(f"📋 View Details - {row['food_name'][:25]}"):
          st.write(f"🔥 Calories: {row['calories']}")
@@ -781,6 +945,13 @@ with col1:
     <p>{highest_protein['protein_g']:.1f} g protein</p>
     </div>
     """, unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="metric-card">
+    <h4>🥩 Highest Protein</h4>
+    <p><b>{highest_protein['food_name']}</b></p>
+    <p>{highest_protein['protein_g']:.1f} g protein</p>
+    </div>
+""", unsafe_allow_html=True)
 with col2:
     st.markdown(f"""
     <div class="metric-card">
@@ -819,6 +990,130 @@ st.markdown("""
     color: black !important;
 }
 </style>
+""", unsafe_allow_html=True)
+st.subheader("📊 Nutrition Comparison Chart")
+
+chart_df = recommended_foods.head(5)
+
+fig = px.bar(
+    chart_df,
+    x="food_name",
+    y=["protein_g", "calories"],
+    barmode="group",
+    title="Top 5 Foods: Protein vs Calories"
+)
+fig.update_layout(
+    plot_bgcolor="#F6F1F1",
+    paper_bgcolor="#F6F1F1",
+    font=dict(
+        color="#6F5A64",
+        size=14
+    ),
+    title_font=dict(
+        size=22,
+        color="#6F5A64"
+    ),
+    xaxis_title="Food",
+    yaxis_title="Value",
+    legend_title="Nutrition"
+)
+
+fig.update_traces(
+    marker_line_width=1
+)
+fig.data[0].marker.color = "#A67C87"   # Protein
+fig.data[1].marker.color = "#CDB7C5"   # Calories
+fig.update_xaxes(tickangle=-25)
+
+st.plotly_chart(fig, use_container_width=True)
+st.subheader("📈 Nutrition Insights")
+
+kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+with kpi1:
+    st.metric(
+        "Foods Found",
+        len(recommended_foods)
+    )
+with kpi2:
+    st.metric(
+        "Avg Protein",
+        f"{recommended_foods['protein_g'].mean():.1f} g"
+    )
+with kpi3:
+    st.metric(
+        "Best Health Score",
+        f"{recommended_foods['health_score'].max():.0f}"
+    )
+with kpi4:
+    st.metric(
+        "Avg Calories",
+        f"{recommended_foods['calories'].mean():.0f}"
+    )
+st.subheader("🏷️ Food Category Insights")
+category_count = (
+    recommended_foods["food_category"]
+    .value_counts()
+    .reset_index()
+)
+
+category_count.columns = [
+    "Category",
+    "Count"
+]
+category_fig = px.pie(
+    category_count,
+    values="Count",
+    names="Category",
+    title="Food Category Distribution",
+    color_discrete_sequence=[
+        "#D8A7B1",  # Dusty Rose
+        "#E8CFCF",  # Soft Blush
+        "#DCC6CC",  # Pale Mauve
+        "#CDB7C5",  # Powder Lilac
+        "#D8E2D0",  # Sage Green
+        "#F6F1F1",  # Ivory Blush
+        "#DCEAF7"   # Baby Blue
+    ]
+)
+category_fig.update_layout(
+    plot_bgcolor="#F6F1F1",
+    paper_bgcolor="#F6F1F1",
+    font_color="#6F5A64",
+    title_font_size=22
+)
+
+st.plotly_chart(
+    category_fig,
+    use_container_width=True
+)
+top_category = category_count.iloc[0]
+
+st.markdown(f"""
+<div style="
+background:#F6F1F1;
+padding:20px;
+border-radius:15px;
+border-left:6px solid #CDB7C5;
+margin-top:10px;
+">
+
+<h3 style="color:#6F5A64;">
+🏆 Top Food Category
+</h3>
+
+<p style="
+font-size:22px;
+font-weight:700;
+color:#4A4A4A;
+">
+{top_category['Category']}
+</p>
+
+<p style="color:#6F5A64;">
+{top_category['Count']} recommendations found
+</p>
+
+</div>
 """, unsafe_allow_html=True)
 st.subheader("📊 Food Comparison Table")
 styled_df = recommended_foods[
