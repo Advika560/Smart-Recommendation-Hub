@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import ast
 pastel_colors = [
     "#BFA3A3",  # Dusty Rose
     "#DCC6CC",  # Pale Mauve
@@ -22,6 +23,54 @@ st.set_page_config(
 foods_df = pd.read_csv(
     "datasets/comprehensive_foods_usda.csv"
 )
+movies_df = pd.read_csv(
+    "datasets/movies.csv"
+)
+
+movies_df = movies_df[
+    [
+        "title",
+        "genres",
+        "overview",
+        "release_date",
+        "popularity",
+        "vote_average",
+        "vote_count",
+        "poster_path"
+    ]
+]
+
+def extract_genres(genre_string):
+    try:
+        genres = ast.literal_eval(genre_string)
+        return ", ".join([g["name"] for g in genres])
+    except:
+        return ""
+movies_df["genres"] = movies_df["genres"].apply(extract_genres)
+
+valid_genres = [
+    "Action",
+    "Adventure",
+    "Animation",
+    "Comedy",
+    "Crime",
+    "Documentary",
+    "Drama",
+    "Family",
+    "Fantasy",
+    "History",
+    "Horror",
+    "Music",
+    "Mystery",
+    "Romance",
+    "Science Fiction",
+    "Thriller",
+    "War",
+    "Western"
+]
+
+movies_df = movies_df.dropna(subset=["title", "genres"])
+
 if "favorites" not in st.session_state:
     st.session_state.favorites = []
 if "profile_submitted" not in st.session_state:
@@ -453,6 +502,25 @@ movie_genres = st.multiselect(
         "War",
         "Western"
     ]
+)
+movie_rating = st.slider(
+    "⭐ Minimum Movie Rating",
+    min_value=1.0,
+    max_value=10.0,
+    value=7.0,
+    step=0.1
+)
+movie_popularity = st.slider(
+    "🔥 Minimum Popularity",
+    min_value=0,
+    max_value=100,
+    value=20
+)
+movie_year = st.slider(
+    "📅 Released After",
+    min_value=1950,
+    max_value=2025,
+    value=2010
 )
 
 st.markdown("</div>", unsafe_allow_html=True)
@@ -1405,7 +1473,7 @@ if (
         )
 
             st.plotly_chart(calories_fig, use_container_width=True)
-            
+            st.write("DEBUG 1475")
             # =====================================
             # USER PROFILE
             # =====================================
@@ -1415,94 +1483,36 @@ if (
             # =====================================
             # FOOD RECOMMENDATIONS
             # =====================================
-
+        st.write("DEBUG 1485")
 
             # =====================================
             # MOVIE RECOMMENDATIONS
             # =====================================
+    st.write("CHECKING MOVIE BLOCK")
+    
+    st.write(st.session_state.profile_submitted)
+    st.write(st.session_state.recommendation_type)
+    print("MOVIE IF REACHED")
     if (
         st.session_state.profile_submitted
         and st.session_state.recommendation_type == "Movies"
     ):
         st.header("🎬 Movie Recommendations")
+        st.success("MOVIE BLOCK RUNNING")
+        filtered_movies = movies_df.copy()
 
-        if "Sci-Fi" in movie_genres:
-                st.markdown("""
-                <div class='rec-card'>
-                🎬 Interstellar<br>
-                ⭐ IMDb 8.7
-                </div>
-                """, unsafe_allow_html=True)
+        if movie_genres:
+            genre_pattern = "|".join(movie_genres)
 
-        if "Action" in movie_genres:
-                st.markdown("""
-                <div class='rec-card'>
-                🎬 Avengers: Endgame
-                </div>
-                """, unsafe_allow_html=True)
-
-        if "Comedy" in movie_genres:
-                st.markdown("""
-                <div class='rec-card'>
-                🎬 3 Idiots
-                </div>
-                """, unsafe_allow_html=True)
-
-        if "Romance" in movie_genres:
-                st.markdown("""
-                <div class='rec-card'>
-                🎬 The Notebook
-                </div>
-                """, unsafe_allow_html=True)
-
-        if "Thriller" in movie_genres:
-                st.markdown("""
-                <div class='rec-card'>
-                🎬 Se7en
-                </div>
-                """, unsafe_allow_html=True)
-
-        if "Horror" in movie_genres:
-                st.markdown("""
-                <div class='rec-card'>
-                🎬 The Conjuring
-                </div>
-                """, unsafe_allow_html=True)
-
-        if "Drama" in movie_genres:
-                st.markdown("""
-                <div class='rec-card'>
-                🎬 The Shawshank Redemption
-                </div>
-                """, unsafe_allow_html=True)
-
-        if "Adventure" in movie_genres:
-                st.markdown("""
-                <div class='rec-card'>
-                🎬 Indiana Jones
-                </div>
-                """, unsafe_allow_html=True)
-
-        if "Animation" in movie_genres:
-                st.markdown("""
-                <div class='rec-card'>
-                🎬 Coco
-                </div>
-                """, unsafe_allow_html=True)
-
-        if "Crime" in movie_genres:
-                st.markdown("""
-                <div class='rec-card'>
-                🎬 The Godfather
-                </div>
-                """, unsafe_allow_html=True)
-
-        if "Fantasy" in movie_genres:
-                st.markdown("""
-                <div class='rec-card'>
-                🎬 Harry Potter
-                </div>
-                """, unsafe_allow_html=True)
+            filtered_movies = filtered_movies[
+                filtered_movies["genres"].str.contains(
+                genre_pattern,
+                case=False,
+                na=False
+            )
+        ]
+        st.write("Movies Found:", len(filtered_movies))
+       
                 # ==================================
     # MOVIE PAGE
     # ==================================
