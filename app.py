@@ -571,6 +571,7 @@ st.write(f"Profile Completion: {completion}%")
 # =====================================
 st.write("Profile Submitted =", st.session_state.profile_submitted)
 st.write("Recommendation Type =", st.session_state.recommendation_type)
+st.write("CHECKING MOVIE BLOCK")
 st.write(
     "Food Condition =",
     st.session_state.profile_submitted
@@ -1473,45 +1474,89 @@ if (
         )
 
             st.plotly_chart(calories_fig, use_container_width=True)
-            st.write("DEBUG 1475")
-            # =====================================
-            # USER PROFILE
-            # =====================================
+# =====================================
+# MOVIE RECOMMENDATIONS
+# =====================================
 
-        
+if (
+    st.session_state.profile_submitted
+    and st.session_state.recommendation_type == "Movies"
+):
 
-            # =====================================
-            # FOOD RECOMMENDATIONS
-            # =====================================
-        st.write("DEBUG 1485")
+    st.header("🎬 Movie Recommendations")
 
-            # =====================================
-            # MOVIE RECOMMENDATIONS
-            # =====================================
-    st.write("CHECKING MOVIE BLOCK")
-    
-    st.write(st.session_state.profile_submitted)
-    st.write(st.session_state.recommendation_type)
-    print("MOVIE IF REACHED")
-    if (
-        st.session_state.profile_submitted
-        and st.session_state.recommendation_type == "Movies"
-    ):
-        st.header("🎬 Movie Recommendations")
-        st.success("MOVIE BLOCK RUNNING")
-        filtered_movies = movies_df.copy()
+    filtered_movies = movies_df.copy()
 
-        if movie_genres:
-            genre_pattern = "|".join(movie_genres)
+    if movie_genres:
+        genre_pattern = "|".join(movie_genres)
 
-            filtered_movies = filtered_movies[
-                filtered_movies["genres"].str.contains(
+        filtered_movies = filtered_movies[
+            filtered_movies["genres"].str.contains(
                 genre_pattern,
                 case=False,
                 na=False
             )
         ]
-        st.write("Movies Found:", len(filtered_movies))
+
+    filtered_movies = filtered_movies[
+        filtered_movies["vote_average"] >= movie_rating
+    ]
+    filtered_movies["popularity"] = pd.to_numeric(
+        filtered_movies["popularity"],
+        errors="coerce"
+    )
+    filtered_movies["vote_average"] = pd.to_numeric(
+        filtered_movies["vote_average"],
+        errors="coerce"
+    )
+    filtered_movies = filtered_movies[
+        filtered_movies["popularity"] >= movie_popularity
+    ]
+
+    filtered_movies["release_year"] = pd.to_datetime(
+        filtered_movies["release_date"],
+        errors="coerce"
+    ).dt.year
+
+    filtered_movies = filtered_movies[
+        filtered_movies["release_year"] >= movie_year
+    ]
+
+    st.success(f"Found {len(filtered_movies)} matching movies")
+
+    if len(filtered_movies) == 0:
+        st.warning("No movies found. Try relaxing your filters.")
+    else:
+
+        top_movies = filtered_movies.sort_values(
+            by="vote_average",
+            ascending=False
+        ).head(10)
+
+        for _, movie in top_movies.iterrows():
+
+            st.markdown(f"""
+            <div style="
+                background:#F6EEEE;
+                padding:20px;
+                border-radius:15px;
+                margin-bottom:15px;
+                border-left:5px solid #A67C87;
+            ">
+                <h3 style="color:#6F5A64;">
+                    🎬 {movie['title']}
+                </h3>
+
+                <p><b>Genres:</b> {movie['genres']}</p>
+                <p><b>⭐ Rating:</b> {movie['vote_average']}</p>
+                <p><b>🔥 Popularity:</b> {movie['popularity']}</p>
+                <p><b>📅 Release:</b> {movie['release_date']}</p>
+
+                <p>
+                    {str(movie['overview'])[:300]}
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
        
                 # ==================================
     # MOVIE PAGE
