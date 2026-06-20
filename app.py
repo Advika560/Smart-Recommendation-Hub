@@ -1535,33 +1535,43 @@ if (
 
         for _, movie in top_movies.iterrows():
 
-            st.markdown(f"""
-            <div style="
-                background:#F6EEEE;
-                padding:20px;
-                border-radius:15px;
-                margin-bottom:15px;
-                border-left:5px solid #A67C87;
-            ">
-                <h3 style="color:#6F5A64;">
-                    🎬 {movie['title']}
-                </h3>
+                movie_card = f"""
+                <div style="
+                    background:#F6EEEE;
+                    padding:20px;
+                    border-radius:15px;
+                    margin-bottom:15px;
+                    border-left:5px solid #A67C87;
+                ">
 
-                <p><b>Genres:</b> {movie['genres']}</p>
-                <p><b>⭐ Rating:</b> {movie['vote_average']}</p>
-                <p><b>🔥 Popularity:</b> {movie['popularity']}</p>
-                <p><b>📅 Release:</b> {movie['release_date']}</p>
+                    <h3 style="color:#6F5A64;">
+                        🎬 {movie['title']}
+                    </h3>
 
-                <p>
-                    {str(movie['overview'])[:300]}
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
-       
-                # ==================================
-    # MOVIE PAGE
-    # ==================================
+                    <p><b>🎭 Genres:</b> {movie['genres']}</p>
 
+                    <p>
+                        ⭐ <b>Rating:</b> {movie['vote_average']}
+                    </p>
+
+                    <p>
+                        🔥 <b>Popularity:</b> {movie['popularity']}
+                    </p>
+
+                    <p>
+                        📅 <b>Release:</b> {movie['release_date']}
+                    </p>
+
+                    <hr>
+
+                    <p>
+                        {str(movie['overview'])[:300]}
+                    </p>
+
+                </div>
+                """
+
+                st.markdown(movie_card, unsafe_allow_html=True)
 
 
 
