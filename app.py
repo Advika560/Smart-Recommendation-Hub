@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import ast
+import numpy as np
 pastel_colors = [
     "#BFA3A3",  # Dusty Rose
     "#DCC6CC",  # Pale Mauve
