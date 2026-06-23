@@ -484,7 +484,7 @@ movie_genres = st.multiselect(
     [
         "Action",
         "Comedy",
-        "Sci-Fi",
+        "Science Fiction",
         "Romance",
         "Thriller",
         "Horror",
@@ -1532,47 +1532,55 @@ if (
         top_movies = filtered_movies.sort_values(
             by="vote_average",
             ascending=False
-        ).head(10)
+        ).head(100)
 
         for _, movie in top_movies.iterrows():
 
                 movie_card = f"""
                 <div style="
                     background:#F6EEEE;
-                    padding:20px;
-                    border-radius:15px;
-                    margin-bottom:15px;
-                    border-left:5px solid #A67C87;
+                    padding:24px;
+                    border-radius:20px;
+                    margin-bottom:20px;
+                    border-left:6px solid #A67C87;
+                    box-shadow:0 8px 24px rgba(0,0,0,0.10);
+                    transition:all 0.3s ease;
                 ">
 
-                    <h3 style="color:#6F5A64;">
+                    <h3 style="
+                        color:#6F5A64;
+                        font-size:24px;
+                        font-weight:700;
+                        margin-bottom:15px;
+                    ">
                         🎬 {movie['title']}
                     </h3>
+                    <p style="color:#4A3F4D;"><b>🎭 Genres:</b> {str(movie['genres']).replace('SciFi', 'Science Fiction')}</p>
 
-                    <p><b>🎭 Genres:</b> {movie['genres']}</p>
-
-                    <p>
-                        ⭐ <b>Rating:</b> {movie['vote_average']}
-                    </p>
-
-                    <p>
+                    <p style="color:#4A3F4D;">
+                        ⭐ <b>Rating:</b> {movie['vote_average']} </p>
+                    <p style="color:#4A3F4D;">
                         🔥 <b>Popularity:</b> {movie['popularity']}
                     </p>
 
-                    <p>
-                        📅 <b>Release:</b> {movie['release_date']}
+                    <p style="color:#4A3F4D;">
+                        🗓️ <b>Release:</b> {movie['release_date']}
                     </p>
 
-                    <hr>
+                    <hr style="border:1px solid #D8A7B1;">
 
-                    <p>
+                    <p style="
+                        color:#4A3F4D;
+                        line-height:1.8;
+                        font-size:16px;
+                    ">
                         {str(movie['overview'])[:300]}
                     </p>
 
                 </div>
                 """
 
-                st.markdown(movie_card, unsafe_allow_html=True)
+                st.html(movie_card)
 
 
 
