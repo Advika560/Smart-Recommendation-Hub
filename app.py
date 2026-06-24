@@ -25,7 +25,8 @@ foods_df = pd.read_csv(
     "datasets/comprehensive_foods_usda.csv"
 )
 movies_df = pd.read_csv(
-    "datasets/movies.csv"
+    "datasets/movies.csv",
+    low_memory=False
 )
 
 movies_df = movies_df[
@@ -48,7 +49,10 @@ def extract_genres(genre_string):
     except:
         return ""
 movies_df["genres"] = movies_df["genres"].apply(extract_genres)
-
+movies_df["poster_url"] = (
+    "https://image.tmdb.org/t/p/w500" +
+    movies_df["poster_path"].fillna("")
+)
 valid_genres = [
     "Action",
     "Adventure",
@@ -1546,7 +1550,15 @@ if (
                     box-shadow:0 8px 24px rgba(0,0,0,0.10);
                     transition:all 0.3s ease;
                 ">
-
+                <img
+                    src="https://image.tmdb.org/t/p/w500{movie['poster_path']}"
+                    style="
+                        width:180px;
+                        border-radius:15px;
+                        margin-bottom:15px;
+                        box-shadow:0 4px 12px rgba(0,0,0,0.15);
+                    "
+                />
                     <h3 style="
                         color:#6F5A64;
                         font-size:24px;
