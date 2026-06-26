@@ -1491,7 +1491,10 @@ if (
     st.header("🎬 Movie Recommendations")
 
     filtered_movies = movies_df.copy()
-
+    movie_search = st.text_input(
+        "🔍 Search Movie",
+        placeholder="Enter movie name..."
+    )
     if movie_genres:
         genre_pattern = "|".join(movie_genres)
 
@@ -1502,7 +1505,14 @@ if (
                 na=False
             )
         ]
-
+    if movie_search:
+        filtered_movies = filtered_movies[
+            filtered_movies["title"].str.contains(
+                movie_search,
+                case=False,
+                na=False
+         )
+        ]
     filtered_movies = filtered_movies[
         filtered_movies["vote_average"] >= movie_rating
     ]
@@ -1528,7 +1538,40 @@ if (
     ]
 
     st.success(f"Found {len(filtered_movies)} matching movies")
+    col1, col2, col3, col4 = st.columns(4)
 
+    with col1:
+        st.metric("🎬 Movies Found", len(filtered_movies))
+
+    with col2:
+        st.metric(
+            "⭐ Avg Rating",
+            round(filtered_movies["vote_average"].mean(), 1)
+        )
+
+    with col3:
+        st.metric(
+            "🔥 Highest Rating",
+            round(filtered_movies["vote_average"].max(), 1)
+        )
+
+    with col4:
+        st.metric(
+            "📅 Latest Year",
+            int(filtered_movies["release_year"].max())
+        )
+    st.subheader("📊 Genre Distribution")
+    all_genres = []
+
+    for genres in filtered_movies["genres"]:
+        if pd.notna(genres):
+            all_genres.extend(
+                [g.strip() for g in str(genres).split(",")]
+            )
+
+    genre_counts = pd.Series(all_genres).value_counts().head(10)
+
+    st.bar_chart(genre_counts)
     if len(filtered_movies) == 0:
         st.warning("No movies found. Try relaxing your filters.")
     else:
@@ -1537,7 +1580,28 @@ if (
             by="vote_average",
             ascending=False
         ).head(100)
+        best_movie = top_movies.iloc[0]
 
+        st.markdown(f"""
+        <div style="
+            background:linear-gradient(135deg,#E8D5E0,#F6EEEE);
+            padding:25px;
+            border-radius:20px;
+            border-left:8px solid #A67C87;
+            margin-bottom:25px;
+        ">
+            <h2 style="color:#4A3F4D;">🌟 Best Match For You</h2>
+            <h3 style="color:#4A3F4D;">
+                {best_movie['title']}
+            </h3>
+            <p style="color:#4A3F4D;">
+                ⭐ Rating: {round(best_movie['vote_average'],1)}/10
+            </p>
+            <p style="color:#4A3F4D;">
+                🎭 {best_movie['genres']}
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
         for _, movie in top_movies.iterrows():
 
                 movie_card = f"""
@@ -1550,8 +1614,11 @@ if (
                     box-shadow:0 8px 24px rgba(0,0,0,0.10);
                     transition:all 0.3s ease;
                 ">
-                <img
-                    src="https://image.tmdb.org/t/p/w500{movie['poster_path']}"
+                <div style="display:flex; gap:25px; align-items:flex-start;">
+                <div style="flex:0 0 190px; text-align:center;">
+                {"<img src='https://image.tmdb.org/t/p/w500" + str(movie['poster_path']) + "' style='width:180px;border-radius:15px;margin-bottom:15px;'>"
+                if pd.notna(movie['poster_path']) and str(movie['poster_path']) != 'nan'
+                else ""}
                     style="
                         width:180px;
                         border-radius:15px;
@@ -1565,15 +1632,39 @@ if (
                         font-weight:700;
                         margin-bottom:15px;
                     ">
-                        🎬 {movie['title']}
-                    </h3>
-                    <p style="color:#4A3F4D;"><b>🎭 Genres:</b> {str(movie['genres']).replace('SciFi', 'Science Fiction')}</p>
+                    🎬 {movie['title']}
 
+                    {"<span style='background:#FFD700; color:black; padding:4px 10px; border-radius:15px; font-size:12px; margin-left:10px;'>🏆 Top Pick</span>" if movie['vote_average'] >= 8.5 else ""}
+                    </h3>
                     <p style="color:#4A3F4D;">
-                        ⭐ <b>Rating:</b> {movie['vote_average']} </p>
-                    <p style="color:#4A3F4D;">
-                        🔥 <b>Popularity:</b> {movie['popularity']}
+                    🎭 <b>Genres:</b>
+                    <span style="
+                        background:#E8D5E0;
+                        padding:6px 12px;
+                        border-radius:15px;
+                        margin-left:8px;
+                    ">
+                    {str(movie['genres']).replace('SciFi', 'Science Fiction')}
+                    </span>
                     </p>
+
+                    <p style="
+                        color:#4A3F4D;
+                        background:#F8E7A2;
+                        display:inline-block;
+                        padding:6px 12px;
+                        border-radius:20px;
+                        margin-right:10px;
+                    ">
+                    ⭐ {round(movie['vote_average'],1)}/10
+                    </p>
+                        <p style="color:#4A3F4D;">
+                        🔥 <b>Popularity:</b>
+                        <progress value="{min(movie['popularity'],100)}" max="100"
+                        style="width:180px;height:12px;"></progress>
+                        {round(min(movie['popularity'],100),1)}%
+                        </p>
+                
 
                     <p style="color:#4A3F4D;">
                         🗓️ <b>Release:</b> {movie['release_date']}
