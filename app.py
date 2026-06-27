@@ -527,7 +527,15 @@ movie_year = st.slider(
     max_value=2025,
     value=2010
 )
-
+sort_by = st.selectbox(
+    "📊 Sort Movies By",
+    [
+        "Highest Rated",
+        "Most Popular",
+        "Newest",
+        "Title (A-Z)"
+    ]
+)
 st.markdown("</div>", unsafe_allow_html=True)
 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -1576,10 +1584,31 @@ if (
         st.warning("No movies found. Try relaxing your filters.")
     else:
 
-        top_movies = filtered_movies.sort_values(
-            by="vote_average",
-            ascending=False
-        ).head(100)
+        if sort_by == "Highest Rated":
+            top_movies = filtered_movies.sort_values(
+                by="vote_average",
+                ascending=False
+        )
+
+        elif sort_by == "Most Popular":
+            top_movies = filtered_movies.sort_values(
+                by="popularity",
+                ascending=False
+        )
+
+        elif sort_by == "Newest":
+            top_movies = filtered_movies.sort_values(
+                by="release_year",
+                ascending=False
+            )
+
+        else:   # Title (A-Z)
+            top_movies = filtered_movies.sort_values(
+                by="title",
+                ascending=True
+            )
+
+        top_movies = top_movies.head(100)
         best_movie = top_movies.iloc[0]
 
         st.markdown(f"""
