@@ -1632,7 +1632,25 @@ if (
         </div>
         """, unsafe_allow_html=True)
         for _, movie in top_movies.iterrows():
+            genre_html = ""
 
+            for genre in str(movie["genres"]).replace("SciFi", "Science Fiction").split(","):
+                genre = genre.strip()
+
+                genre_html += f"""
+                <span style="
+                    display:inline-block;
+                    background:#E8D9E5;
+                    color:#4A3F4D;
+                    padding:6px 12px;
+                    border-radius:18px;
+                    margin:4px;
+                    font-size:13px;
+                    font-weight:600;
+                ">
+                    {genre}
+                </span>
+                """
                 movie_card = f"""
                 <div style="
                     background:#F6EEEE;
